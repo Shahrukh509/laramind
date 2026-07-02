@@ -79,7 +79,7 @@ class AIService
 public function triggerWorkflow(string $reason, array $data)
 {
     // n8n ka URL (Docker network mein service ka naam 'n8n' hai)
-    $url = "http://localhost:5678/webhook-test/order-alert"; 
+    $url = "http://n8n:5678/webhook-test/order-alert"; 
 
     return Http::post($url, [
         'event' => 'order_issue_detected',
