@@ -16,18 +16,18 @@ class RunAgent extends Command
         $userPrompt = $this->argument('prompt');
         $client = OpenAI::client(env('OPENAI_API_KEY'));
 
-        // 1. AI ko prompt bhejna sath mein "Tools" ki list bhi dena
+        // 1. give prompts to ai and also list of tools
         $response = $client->chat()->create([
             'model' => 'gpt-4o-mini',
             'messages' => [['role' => 'user', 'content' => $userPrompt]],
-            'tools' => $ai->getTools(), // AI ko bataya ke ye tools hain
+            'tools' => $ai->getTools(), // to highlight tools with ai
             'tool_choice' => 'auto',
         ]);
 
         $message = $response->choices[0]->message;
         $this->info("AI message: ".json_encode($message));
 
-        // 2. Check karna ke kya AI tool use karna chahta hai?
+        // 2. Check If ai want to use any tool?
 
     if ($message->toolCalls) {
     foreach ($message->toolCalls as $toolCall) {
@@ -67,7 +67,33 @@ class RunAgent extends Command
             ]);
 
             $this->info("AI Agent: " . $finalResponse->choices[0]->message->content);
-        }
+        }elseif ($functionName === 'get_user_status') {
+    $this->info("AI is asking for user info...");
+    
+    // Asal mein ye database (Auth::user()) se aata, lekin hum abhi hardcode kar rahe hain
+    $result = "User Name: Shahrukh, Role: Senior Developer"; 
+    
+    $this->comment("System Result: " . $result);
+
+    // AI ko result wapis bhejna (Wahi logic jo pehle thi)
+    $assistantMessage = $message->toArray();
+    $assistantMessage['content'] = $assistantMessage['content'] ?? '';
+
+    $finalResponse = $client->chat()->create([
+        'model' => 'gpt-4o-mini',
+        'messages' => [
+            ['role' => 'user', 'content' => $userPrompt],
+            $assistantMessage,
+            [
+                'role' => 'tool',
+                'tool_call_id' => $toolCall->id,
+                'content' => (string) $result,
+            ]
+        ]
+    ]);
+
+    $this->info("AI Agent: " . $finalResponse->choices[0]->message->content);
+}
     }
 }
     }

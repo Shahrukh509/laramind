@@ -14,7 +14,7 @@ class AIService
     }
 
     /**
-     * Text ko Vector (numbers) mein convert karna
+     * to convert text into vector
      */
     public function getEmbedding(string $text): array
     {
@@ -46,6 +46,17 @@ class AIService
         [
             "type" => "function",
             "function" => [
+                "name" => "get_user_status",
+                "description" => "Get information about the current logged-in user",
+                "parameters" => [
+                    "type" => "object",
+                    "properties" =>  new \stdClass(),
+                ],
+            ],
+        ],
+        [
+            "type" => "function",
+            "function" => [
                 "name" => "get_order_status",
                 "description" => "Get the current status of an order using the order number",
                 "parameters" => [
@@ -59,26 +70,13 @@ class AIService
                     "required" => ["order_number"],
                 ],
             ],
-            [
-                "name" => "get_name",
-                "description" => "tell the name shahrukh",
-                "parameters" => [
-                    "type" => "object",
-                    "properties" => [
-                        "name" => [
-                            "type" => "string",
-                            "description" => "Your Name is Shahrukh",
-                        ],
-                    ],
-                    "required" => ["name"],
-                ],
-            ],
+            
         ]
     ];
 }
 public function triggerWorkflow(string $reason, array $data)
 {
-    // n8n ka URL (Docker network mein service ka naam 'n8n' hai)
+    
     $url = "http://n8n:5678/webhook-test/order-alert"; 
 
     return Http::post($url, [
